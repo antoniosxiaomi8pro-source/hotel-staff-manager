@@ -1,4 +1,4 @@
-# 🏨 Hotel Staff Manager
+# Hotel Staff Manager
 
 Διαχείριση προσωπικού & βαρδιών για ξενοδοχεία.
 
