@@ -1,0 +1,64 @@
+{% extends 'staff/base.html' %}
+
+{% block content %}
+<h1>💰 Ημερομίσθια - {{ month_name }} {{ year }}</h1>
+
+<div style="margin-bottom:1rem;">
+    <a href="?year={{ prev_month|slice:":4" }}&month={{ prev_month|slice:"5:" }}" class="btn btn-primary">← Προηγούμενος</a>
+    <a href="?year={{ next_month|slice:":4" }}&month={{ next_month|slice:"5:" }}" class="btn btn-primary">Επόμενος →</a>
+</div>
+
+<div class="grid-3">
+    {% for data in hotels_data %}
+    <div class="card stat-card">
+        <h3>{{ data.hotel.name }}</h3>
+        <div class="stat-number">€{{ data.total_wages }}</div>
+        <div class="stat-label">Σύνολο Ημερομισθίων</div>
+        <hr style="margin:1rem 0;">
+        <p>Ώρες: {{ data.total_hours }}h</p>
+        <p>Βάρδιες: {{ data.shift_count }}</p>
+        <p>Προσωπικό: {{ data.employee_count }}</p>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="card" style="background:#27ae60; color:white; text-align:center;">
+    <h2>ΣΥΝΟΛΟ ΜΗΝΑ: €{{ total_monthly_wages }}</h2>
+</div>
+
+<div style="margin:1rem 0;">
+    <a href="{% url 'export_payroll' %}?year={{ year }}&month={{ month }}" class="btn btn-success">📊 Export Excel</a>
+</div>
+
+<div class="card">
+    <h3>Λεπτομερής Κατάσταση Βαρδιών</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Ημερομηνία</th>
+                <th>Ξενοδοχείο</th>
+                <th>Τμήμα</th>
+                <th>Υπάλληλος</th>
+                <th>Τύπος Μισθ.</th>
+                <th>Ώρες</th>
+                <th>Ημερομίσθιο</th>
+                <th>Κατάσταση</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for shift in shifts %}
+            <tr>
+                <td>{{ shift.date|date:"d/m/Y" }}</td>
+                <td>{{ shift.department.hotel.name }}</td>
+                <td>{{ shift.department.name }}</td>
+                <td>{{ shift.employee.full_name }}</td>
+                <td>{{ shift.employee.get_salary_type_display }}</td>
+                <td>{{ shift.actual_hours|default:shift.scheduled_hours }}h</td>
+                <td>{% if shift.daily_wage > 0 %}€{{ shift.daily_wage }}{% else %}-{% endif %}</td>
+                <td><span class="badge badge-{{ shift.status }}">{{ shift.get_status_display }}</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

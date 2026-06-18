@@ -1,0 +1,25 @@
+{% extends 'staff/base.html' %}
+
+{% block content %}
+<h1>✏️ Επεξεργασία Στατιστικών - {{ stats.hotel.name }}</h1>
+<h3>{{ stats.date|date:"d/m/Y" }}</h3>
+
+<div class="card">
+    <form method="post">
+        {% csrf_token %}
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
+            <div><label>Συνολικά Δωμάτια:</label><input type="number" name="total_rooms" value="{{ stats.total_rooms }}" required></div>
+            <div><label>Κατειλημμένα:</label><input type="number" name="occupied_rooms" value="{{ stats.occupied_rooms }}" required></div>
+            <div><label>Check-ins:</label><input type="number" name="check_ins" value="{{ stats.check_ins }}"></div>
+            <div><label>Check-outs:</label><input type="number" name="check_outs" value="{{ stats.check_outs }}"></div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px;">
+            <div><label>Room Revenue (€):</label><input type="number" name="room_revenue" step="0.01" value="{{ stats.room_revenue }}" required></div>
+            <div><label>F&B Revenue (€):</label><input type="number" name="fb_revenue" step="0.01" value="{{ stats.fb_revenue }}" required></div>
+            <div><label>Extras (€):</label><input type="number" name="extras_revenue" step="0.01" value="{{ stats.extras_revenue }}"></div>
+        </div>
+        <button type="submit" class="btn btn-success" style="margin-top: 20px;">💾 Ενημέρωση</button>
+        <a href="{% url 'daily_stats_entry' %}" class="btn btn-secondary">← Πίσω</a>
+    </form>
+</div>
+{% endblock %}

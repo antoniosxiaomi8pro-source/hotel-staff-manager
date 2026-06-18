@@ -1,0 +1,115 @@
+{% extends 'staff/base.html' %}
+
+{% block content %}
+<h1>📊 Daily HR Report - {{ today|date:"d/m/Y" }}</h1>
+
+<!-- Συνοπτικά Στατιστικά -->
+<div class="card" style="margin-bottom: 20px;">
+    <h2>📈 Συνοπτικά Στατιστικά</h2>
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 15px;">
+        <div style="background: #3498db; color: white; padding: 15px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 24px; font-weight: bold;">{{ total_employees }}</div>
+            <div style="font-size: 12px;">Συνολικοί Υπάλληλοι</div>
+        </div>
+        <div style="background: #2ecc71; color: white; padding: 15px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 24px; font-weight: bold;">{{ total_present }}</div>
+            <div style="font-size: 12px;">Παρουσίες</div>
+        </div>
+        <div style="background: #e74c3c; color: white; padding: 15px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 24px; font-weight: bold;">{{ total_absent }}</div>
+            <div style="font-size: 12px;">Απουσίες</div>
+        </div>
+        <div style="background: #f39c12; color: white; padding: 15px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 24px; font-weight: bold;">{{ total_scheduled }}</div>
+            <div style="font-size: 12px;">Προγραμματισμένοι</div>
+        </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">
+        <div style="background: #9b59b6; color: white; padding: 15px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 24px; font-weight: bold;">€{{ total_wages }}</div>
+            <div style="font-size: 12px;">Πραγματοποιηθέντα Ημερομίσθια</div>
+        </div>
+        <div style="background: #1abc9c; color: white; padding: 15px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 24px; font-weight: bold;">€{{ total_overtime_cost }}</div>
+            <div style="font-size: 12px;">Κόστος Υπερωριών</div>
+        </div>
+    </div>
+</div>
+
+<!-- Αναλυτικά ανά Τμήμα -->
+{% for dept_name, data in dept_data.items %}
+<div class="card" style="margin-bottom: 20px;">
+    <h3>🏢 {{ dept_name }}</h3>
+    <div style="margin-bottom: 10px;">
+        <span style="background: #2ecc71; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Παρουσίες: {{ data.present }}</span>
+        <span style="background: #e74c3c; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Απουσίες: {{ data.absent }}</span>
+        <span style="background: #f39c12; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Προγραμματισμένοι: {{ data.scheduled }}</span>
+        <span style="background: #9b59b6; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Ημερομίσθια: €{{ data.total_wages }}</span>
+    </div>
+    
+    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+        <thead>
+            <tr style="background: #34495e; color: white;">
+                <th style="padding: 8px; text-align: left;">Υπάλληλος</th>
+                <th style="padding: 8px; text-align: left;">Βάρδια</th>
+                <th style="padding: 8px; text-align: center;">Status</th>
+                <th style="padding: 8px; text-align: right;">Ημερομίσθιο</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for shift in data.shifts %}
+            <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding: 8px;">{{ shift.employee.full_name }}</td>
+                <td style="padding: 8px;">{{ shift.start_time|time:"H:i" }} - {{ shift.end_time|time:"H:i" }}</td>
+                <td style="padding: 8px; text-align: center;">
+                    {% if shift.status == 'completed' %}
+                    <span style="background: #2ecc71; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px;">Παρών</span>
+                    {% elif shift.status == 'absent' %}
+                    <span style="background: #e74c3c; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px;">Απών</span>
+                    {% else %}
+                    <span style="background: #f39c12; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px;">Προγραμματισμένη</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 8px; text-align: right;">€{{ shift.daily_wage }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% empty %}
+<div class="card">
+    <p>Δεν υπάρχουν βάρδιες για σήμερα.</p>
+</div>
+{% endfor %}
+
+<!-- Υπερωρίες -->
+{% if today_overtimes %}
+<div class="card" style="margin-bottom: 20px;">
+    <h3>⏰ Υπερωρίες Σήμερα</h3>
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="background: #e74c3c; color: white;">
+                <th style="padding: 8px; text-align: left;">Υπάλληλος</th>
+                <th style="padding: 8px; text-align: left;">Κανόνας</th>
+                <th style="padding: 8px; text-align: center;">Ώρες</th>
+                <th style="padding: 8px; text-align: right;">Κόστος</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ot in today_overtimes %}
+            <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding: 8px;">{{ ot.shift.employee.full_name }}</td>
+                <td style="padding: 8px;">{{ ot.rule.name }}</td>
+                <td style="padding: 8px; text-align: center;">{{ ot.hours }}</td>
+                <td style="padding: 8px; text-align: right;">€{{ ot.cost }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<div style="margin-top: 20px;">
+    <a href="{% url 'dashboard' %}" class="btn btn-primary">← Πίσω στο Dashboard</a>
+</div>
+{% endblock %}

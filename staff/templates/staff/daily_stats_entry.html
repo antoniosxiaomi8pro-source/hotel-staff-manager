@@ -1,0 +1,79 @@
+{% extends 'staff/base.html' %}
+
+{% block content %}
+<h1>📊 Καταχώρηση Ημερήσιων Στατιστικών</h1>
+
+<div class="card">
+    <h2>📝 Νέα Καταχώρηση</h2>
+    <form method="post">
+        {% csrf_token %}
+        
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
+            <div>
+                <label>🏨 Ξενοδοχείο:</label>
+                <select name="hotel" required>
+                    {% for h in hotels %}
+                    <option value="{{ h.id }}">{{ h.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label>📅 Ημερομηνία:</label>
+                <input type="date" name="date" value="{{ default_date|date:'Y-m-d' }}" required>
+                <small style="color: #7f8c8d;">(Καταχωρούμε χθες)</small>
+            </div>
+        </div>
+        
+        <h3>🏨 Occupancy</h3>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
+            <div><label>Συνολικά Δωμάτια:</label><input type="number" name="total_rooms" min="0" required></div>
+            <div><label>Κατειλημμένα:</label><input type="number" name="occupied_rooms" min="0" required></div>
+            <div><label>Check-ins:</label><input type="number" name="check_ins" min="0" value="0"></div>
+            <div><label>Check-outs:</label><input type="number" name="check_outs" min="0" value="0"></div>
+        </div>
+        
+        <h3>💰 Έσοδα (NET)</h3>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+            <div><label>Δωματίων (€):</label><input type="number" name="room_revenue" step="0.01" min="0" value="0" required></div>
+            <div><label>F&B (€):</label><input type="number" name="fb_revenue" step="0.01" min="0" value="0" required></div>
+            <div><label>Extras (€):</label><input type="number" name="extras_revenue" step="0.01" min="0" value="0"></div>
+        </div>
+        
+        <button type="submit" class="btn btn-success" style="margin-top: 20px;">💾 Αποθήκευση</button>
+    </form>
+</div>
+
+<div class="card" style="margin-top: 2rem;">
+    <h2>📋 Πρόσφατες Καταχωρήσεις</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Ημερομηνία</th>
+                <th>Ξενοδοχείο</th>
+                <th>Occupancy</th>
+                <th>Room Rev</th>
+                <th>F&B</th>
+                <th>Extras</th>
+                <th>Labor %</th>
+                <th>Ενέργειες</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in recent_stats %}
+            <tr>
+                <td>{{ stat.date|date:"d/m/Y" }}</td>
+                <td>{{ stat.hotel.name }}</td>
+                <td>{{ stat.occupancy_rate }}% ({{ stat.occupied_rooms }}/{{ stat.total_rooms }})</td>
+                <td>€{{ stat.room_revenue }}</td>
+                <td>€{{ stat.fb_revenue }}</td>
+                <td>€{{ stat.extras_revenue }}</td>
+                <td style="{% if stat.labor_cost_ratio > 25 %}color:#e74c3c;{% endif %}">{{ stat.labor_cost_ratio }}%</td>
+                <td><a href="{% url 'edit_daily_stats' stat.id %}" class="btn btn-sm btn-primary">✏️</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8" style="text-align:center;">Καμία καταχώρηση</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

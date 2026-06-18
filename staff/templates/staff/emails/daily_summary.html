@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #2c3e50; color: white; }
+        .total { background: #27ae60; color: white; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h2>📊 Daily Summary - {{ department.name }}</h2>
+    <p>{{ date|date:"d/m/Y" }} | {{ hotel.name }}</p>
+    <table>
+        <thead>
+            <tr><th>Υπάλληλος</th><th>Ρόλος</th><th>Ώρες</th><th>Κατάσταση</th><th>Ημερομίσθιο</th></tr>
+        </thead>
+        <tbody>
+            {% for shift in shifts %}
+            <tr>
+                <td>{{ shift.employee.full_name }}</td>
+                <td>{{ shift.employee.role }}</td>
+                <td>{{ shift.scheduled_hours }}h</td>
+                <td>{{ shift.get_status_display }}</td>
+                <td>€{{ shift.daily_wage }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr class="total">
+                <td colspan="2">ΣΥΝΟΛΑ</td>
+                <td>{{ total_hours }}h</td>
+                <td>{{ shift_count }} βάρδιες</td>
+                <td>€{{ total_wages }}</td>
+            </tr>
+        </tfoot>
+    </table>
+</body>
+</html>

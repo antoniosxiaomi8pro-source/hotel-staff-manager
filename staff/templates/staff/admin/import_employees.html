@@ -1,0 +1,108 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div id="content-main">
+    <h1>📥 Import Υπαλλήλων από Excel/CSV</h1>
+    
+    <div class="module" style="max-width: 600px; margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+        <form method="post" enctype="multipart/form-data" id="import-form">
+            {% csrf_token %}
+            
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: bold;">📁 Αρχείο (Excel ή CSV):</label>
+                <div id="drop-zone" style="border: 3px dashed #3498db; padding: 40px; text-align: center; border-radius: 8px; background: white; cursor: pointer;">
+                    <div id="drop-text">
+                        <p style="font-size: 18px; color: #3498db; margin: 0;">🗂️ Σύρε αρχείο εδώ</p>
+                        <p style="color: #7f8c8d; margin: 10px 0;">ή κάνε κλικ για επιλογή</p>
+                        <input type="file" name="file" id="file-input" accept=".xlsx,.xls,.csv" style="display: none;" required>
+                    </div>
+                    <div id="file-selected" style="display: none;">
+                        <p style="color: #27ae60; font-weight: bold; margin: 0;">✅ <span id="filename"></span></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: bold;">🏢 Τμήμα:</label>
+                <select name="department" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                    <option value="">-- Επίλεξε Τμήμα --</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept.id }}">{{ dept.hotel.name }} - {{ dept.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <button type="submit" class="btn btn-success" style="background: #27ae60; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+                📥 Έναρξη Import
+            </button>
+        </form>
+    </div>
+    
+    <div class="module" style="max-width: 600px; margin: 20px 0; padding: 20px; background: #fff3cd; border-radius: 8px;">
+        <h3>📋 Απαιτούμενες Στήλες:</h3>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr style="background: #34495e; color: white;">
+                <th style="padding: 8px; text-align: left;">Στήλη</th>
+                <th style="padding: 8px; text-align: left;">Υποχρεωτική</th>
+                <th style="padding: 8px; text-align: left;">Παράδειγμα</th>
+            </tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;">first_name</td><td>✅ Ναι</td><td>Γιώργος</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;">last_name</td><td>✅ Ναι</td><td>Παπαδόπουλος</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;">email</td><td>✅ Ναι</td><td>george@hotel.com</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;">phone</td><td>⚪ Όχι</td><td>6901234567</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;">role</td><td>⚪ Όχι</td><td>Σερβιτόρος</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;">contract_type</td><td>⚪ Όχι</td><td>full_time</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;">salary_type</td><td>⚪ Όχι</td><td>hourly</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;">hourly_wage</td><td>⚪ Όχι</td><td>8.50</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;">monthly_salary</td><td>⚪ Όχι</td><td>1200</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;">daily_wage_fixed</td><td>⚪ Όχι</td><td>70</td></tr>
+        </table>
+    </div>
+</div>
+
+<script>
+// Drag & Drop functionality
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+const dropText = document.getElementById('drop-text');
+const fileSelected = document.getElementById('file-selected');
+const filename = document.getElementById('filename');
+
+dropZone.addEventListener('click', () => fileInput.click());
+
+dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.style.background = '#e3f2fd';
+    dropZone.style.borderColor = '#1976d2';
+});
+
+dropZone.addEventListener('dragleave', () => {
+    dropZone.style.background = 'white';
+    dropZone.style.borderColor = '#3498db';
+});
+
+dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.style.background = 'white';
+    dropZone.style.borderColor = '#3498db';
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        fileInput.files = files;
+        showFile(files[0].name);
+    }
+});
+
+fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) {
+        showFile(fileInput.files[0].name);
+    }
+});
+
+function showFile(name) {
+    filename.textContent = name;
+    dropText.style.display = 'none';
+    fileSelected.style.display = 'block';
+}
+</script>
+{% endblock %}

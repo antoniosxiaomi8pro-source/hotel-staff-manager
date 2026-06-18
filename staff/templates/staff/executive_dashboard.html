@@ -1,0 +1,95 @@
+{% extends 'staff/base.html' %}
+
+{% block content %}
+<h1>📊 Executive Dashboard - Όμιλος</h1>
+
+{% if alerts %}
+<div style="margin-bottom: 2rem;">
+    {% for alert in alerts %}
+    <div class="alert alert-{{ alert.type }}">🏨 <strong>{{ alert.hotel }}</strong>: {{ alert.message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="grid-4" style="margin-bottom: 2rem;">
+    <div class="stat-card">
+        <div class="stat-label">Χθες</div>
+        <div class="stat-number">€{{ periods.yesterday.total_room_rev|floatformat:0 }}</div>
+        <small>Room Rev | Occ: {{ periods.yesterday.avg_occupancy|floatformat:1 }}%</small>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Εβδομάδα</div>
+        <div class="stat-number">€{{ periods.week.total_room_rev|floatformat:0 }}</div>
+        <small>Labor: {{ periods.week.labor_ratio|floatformat:1 }}%</small>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Μήνας</div>
+        <div class="stat-number">€{{ periods.month.total_room_rev|floatformat:0 }}</div>
+        <small>Total: €{{ periods.month.total_rev|floatformat:0 }}</small>
+    </div>
+</div>
+
+<div class="card">
+    <h2>🏨 Ανάλυση ανά Ξενοδοχείο (Μήνας)</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Ξενοδοχείο</th>
+                <th>Room Rev</th>
+                <th>F&B</th>
+                <th>Extras</th>
+                <th>Total</th>
+                <th>Avg Occ %</th>
+                <th>Labor %</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for h in hotel_data %}
+            <tr>
+                <td><strong>{{ h.hotel.name }}</strong></td>
+                <td>€{{ h.room_rev|floatformat:0 }}</td>
+                <td>€{{ h.fb_rev|floatformat:0 }}</td>
+                <td>€{{ h.extras|floatformat:0 }}</td>
+                <td><strong>€{{ h.total_rev|floatformat:0 }}</strong></td>
+                <td>{{ h.avg_occupancy }}%</td>
+                <td style="{% if h.labor_ratio > 25 %}color:#e74c3c;font-weight:bold;{% endif %}">{{ h.labor_ratio }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card" style="margin-top: 2rem;">
+    <h2>📈 Ημερήσια Τάση</h2>
+    <canvas id="trendChart" height="100"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const trendData = {{ daily_trend|safe }};
+new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+        labels: trendData.map(d => d.date),
+        datasets: [{
+            label: 'Total Revenue', data: trendData.map(d => d.total_rev),
+            borderColor: '#3498db', tension: 0.1
+        }, {
+            label: 'Wages', data: trendData.map(d => d.total_wages),
+            borderColor: '#e74c3c', tension: 0.1
+        }, {
+            label: 'Occupancy %', data: trendData.map(d => d.avg_occ),
+            borderColor: '#2ecc71', yAxisID: 'y1', tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        scales: {
+            y: { type: 'linear', display: true, position: 'left' },
+            y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } }
+        }
+    }
+});
+</script>
+{% endblock %}

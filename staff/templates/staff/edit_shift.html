@@ -1,0 +1,73 @@
+{% extends 'staff/base.html' %}
+
+{% block content %}
+<h1>✏️ Επεξεργασία Βάρδιας</h1>
+
+<div class="card">
+    <h3>{{ shift.employee.full_name }} - {{ shift.date|date:"d/m/Y" }}</h3>
+    <p><strong>Τμήμα:</strong> {{ shift.department.name }}</p>
+    <p><strong>Τύπος Μισθοδοσίας:</strong> {{ shift.employee.get_salary_type_display }}</p>
+    
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update">
+        
+        <div class="form-group">
+            <label>Ώρα Έναρξης</label>
+            <input type="time" name="start_time" value="{{ shift.start_time|time:'H:i' }}">
+        </div>
+        <div class="form-group">
+            <label>Ώρα Λήξης</label>
+            <input type="time" name="end_time" value="{{ shift.end_time|time:'H:i' }}">
+        </div>
+        <div class="form-group">
+            <label>Κατάσταση</label>
+            <select name="status">
+                {% for value, label in shift.STATUS_CHOICES %}
+                <option value="{{ value }}" {% if shift.status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Σημειώσεις</label>
+            <textarea name="notes" rows="3">{{ shift.notes }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">💾 Ενημέρωση</button>
+    </form>
+</div>
+
+{% if shift.status != 'completed' %}
+<div class="card">
+    <h3>✅ Ολοκλήρωση Βάρδιας</h3>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="complete">
+        <div class="form-group">
+            <label>Πραγματική Έναρξη</label>
+            <input type="time" name="actual_start" value="{{ shift.start_time|time:'H:i' }}">
+        </div>
+        <div class="form-group">
+            <label>Πραγματική Λήξη</label>
+            <input type="time" name="actual_end" value="{{ shift.end_time|time:'H:i' }}">
+        </div>
+        <button type="submit" class="btn btn-success">✅ Ολοκλήρωση</button>
+    </form>
+</div>
+{% endif %}
+
+<div class="card">
+    <h3>❌ Ακύρωση / Διαγραφή</h3>
+    <form method="post" style="display:inline;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="cancel">
+        <button type="submit" class="btn btn-warning">⚠️ Ακύρωση</button>
+    </form>
+    <form method="post" style="display:inline;" onsubmit="return confirm('Σίγουρα διαγραφή;');">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="delete">
+        <button type="submit" class="btn btn-danger">🗑️ Διαγραφή</button>
+    </form>
+</div>
+
+<a href="{% url 'shift_schedule' dept_id=shift.department.id %}" class="btn btn-primary">← Πίσω</a>
+{% endblock %}

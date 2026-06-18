@@ -1,0 +1,97 @@
+{% extends 'staff/base.html' %}
+
+{% block content %}
+<h1>👤 {{ employee.full_name }}</h1>
+
+<div class="card">
+    <h3>Στοιχεία Υπαλλήλου</h3>
+    <p><strong>Ρόλος:</strong> {{ employee.role }}</p>
+    <p><strong>Τύπος Σύμβασης:</strong> {{ employee.get_contract_type_display }}</p>
+    <p><strong>Τύπος Μισθοδοσίας:</strong> {{ employee.get_salary_type_display }}</p>
+    <p><strong>Email:</strong> {{ employee.email }}</p>
+    <p><strong>Τηλέφωνο:</strong> {{ employee.phone }}</p>
+    
+    {% if employee.salary_type == 'hourly' and employee.hourly_wage %}
+    <p><strong>Ωρομίσθιο:</strong> €{{ employee.hourly_wage }}</p>
+    {% endif %}
+    
+    {% if employee.salary_type == 'monthly' and employee.monthly_salary %}
+    <p><strong>Μηνιαίος Μισθός:</strong> €{{ employee.monthly_salary }}</p>
+    <p><strong>Ημερήσιος Υπολογισμός:</strong> €{{ employee.daily_calculated_wage }} (μήνας / 22 μέρες)</p>
+    {% endif %}
+    
+    {% if employee.salary_type == 'daily' and employee.daily_wage_fixed %}
+    <p><strong>Ημερομίσθιο:</strong> €{{ employee.daily_wage_fixed }}</p>
+    {% endif %}
+</div>
+
+<h2>🏢 Τμήματα</h2>
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Ξενοδοχείο</th>
+                <th>Τμήμα</th>
+                <th>Ώρες/Μέρα</th>
+                <th>Κύριο</th>
+                <th>Έναρξη</th>
+                <th>Λήξη</th>
+                <th>Κατάσταση</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for emp_dept in emp_depts %}
+            <tr>
+                <td>{{ emp_dept.department.hotel.name }}</td>
+                <td>{{ emp_dept.department.name }}</td>
+                <td>{{ emp_dept.hours_per_day }}h</td>
+                <td>{% if emp_dept.is_primary %}✅{% else %}⚪{% endif %}</td>
+                <td>{{ emp_dept.start_date|date:"d/m/Y" }}</td>
+                <td>{% if emp_dept.end_date %}{{ emp_dept.end_date|date:"d/m/Y" }}{% else %}-{% endif %}</td>
+                <td>{% if emp_dept.is_active_now %}✅ Ενεργό{% else %}❌ Ανενεργό{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<h2>📊 Στατιστικά Μηνών</h2>
+<div class="grid-3">
+    {% for stat in monthly_stats %}
+    <div class="card stat-card">
+        <h4>{{ stat.month }}</h4>
+        <div class="stat-number">{{ stat.shifts }}</div>
+        <div class="stat-label">Βάρδιες</div>
+        <p>{{ stat.hours }}h | €{{ stat.wage }}</p>
+    </div>
+    {% endfor %}
+</div>
+
+<h2>📅 Πρόσφατες Βάρδιες</h2>
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Ημερομηνία</th>
+                <th>Τμήμα</th>
+                <th>Ώρες</th>
+                <th>Κατάσταση</th>
+                <th>Ημερομίσθιο</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for shift in shifts %}
+            <tr>
+                <td>{{ shift.date|date:"d/m/Y" }}</td>
+                <td>{{ shift.department.name }}</td>
+                <td>{{ shift.actual_hours|default:shift.scheduled_hours }}h</td>
+                <td><span class="badge badge-{{ shift.status }}">{{ shift.get_status_display }}</span></td>
+                <td>{% if shift.daily_wage > 0 %}€{{ shift.daily_wage }}{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<a href="{% url 'hr_employees' %}" class="btn btn-primary">← Πίσω</a>
+{% endblock %}

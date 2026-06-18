@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Hotel Staff Manager{% endblock %}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f6fa; color: #2c3e50; }
+        .navbar { background: #2c3e50; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .navbar a { color: white; text-decoration: none; margin-left: 20px; }
+        .navbar a:hover { color: #3498db; }
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: white; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn { display: inline-block; padding: 0.5rem 1rem; border-radius: 4px; text-decoration: none; border: none; cursor: pointer; font-size: 14px; margin: 2px; }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-success { background: #27ae60; color: white; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-warning { background: #f39c12; color: white; }
+        .btn-sm { padding: 0.25rem 0.5rem; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #ecf0f1; }
+        th { background: #34495e; color: white; }
+        tr:hover { background: #f8f9fa; }
+        .badge { padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .badge-scheduled { background: #f39c12; color: white; }
+        .badge-confirmed { background: #3498db; color: white; }
+        .badge-completed { background: #27ae60; color: white; }
+        .badge-cancelled { background: #e74c3c; color: white; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+        .stat-card { text-align: center; }
+        .stat-number { font-size: 2rem; font-weight: bold; color: #2c3e50; }
+        .stat-label { color: #7f8c8d; font-size: 0.9rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; }
+        .alert { padding: 1rem; border-radius: 4px; margin-bottom: 1rem; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; }
+        .day-column { background: #f8f9fa; border-radius: 4px; padding: 0.5rem; min-height: 200px; }
+        .day-header { font-weight: bold; text-align: center; padding: 0.5rem; background: #34495e; color: white; border-radius: 4px; margin-bottom: 0.5rem; }
+        .shift-card { background: white; padding: 0.5rem; margin-bottom: 0.5rem; border-radius: 4px; border-left: 3px solid #3498db; font-size: 12px; }
+        .shift-card.morning { border-left-color: #f39c12; }
+        .shift-card.afternoon { border-left-color: #3498db; }
+        .shift-card.night { border-left-color: #2c3e50; }
+        @media (max-width: 768px) { .grid-3, .grid-4, .week-grid { grid-template-columns: 1fr; } .navbar { flex-direction: column; } }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <div><strong>🏨 Hotel Staff Manager</strong></div>
+        <div>
+            {% if user.is_authenticated %}
+                <span>👤 {{ user.username }}</span>
+                {% if is_hr %}<<span style="margin-left:10px; background:#e74c3c; padding:2px 8px; border-radius:4px; font-size:12px;">HR</span>{% endif %}
+                {% if is_manager %}<<span style="margin-left:10px; background:#27ae60; padding:2px 8px; border-radius:4px; font-size:12px;">Manager</span>{% endif %}
+                <a href="{% url 'my_schedule' %}">📅 Το Πρόγραμμά Μου</a>
+                <a href="{% url 'dashboard' %}">Dashboard</a>
+                {% if is_hr %}
+                <a href="{% url 'daily_stats_entry' %}">📊 Καταχώρηση Στατιστικών</a>
+                <a href="{% url 'executive_dashboard' %}">📈 Executive Dashboard</a>
+                {% endif %}
+                <a href="{% url 'logout' %}">Αποσύνδεση</a>
+            {% else %}
+                <a href="{% url 'login' %}">Σύνδεση</a>
+            {% endif %}
+        </div>
+    </nav>
+    <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        {% block content %}{% endblock %}
+    </div>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,56 @@
+{% extends 'staff/base.html' %}
+
+{% block content %}
+<h1>👥 Προσωπικό</h1>
+
+<div class="card">
+    <form method="get" style="display:flex; gap:1rem; flex-wrap:wrap;">
+        <div class="form-group" style="flex:1; min-width:200px;">
+            <label>Ξενοδοχείο</label>
+            <select name="hotel" onchange="this.form.submit()">
+                <option value="">Όλα</option>
+                {% for hotel in hotels %}
+                <option value="{{ hotel.id }}" {% if request.GET.hotel == hotel.id|stringformat:"s" %}selected{% endif %}>{{ hotel.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Ονοματεπώνυμο</th>
+                <th>Ρόλος</th>
+                <th>Τύπος Σύμβασης</th>
+                <th>Τύπος Μισθοδοσίας</th>
+                <th>Ωρομίσθιο</th>
+                <th>Μηνιαίος</th>
+                <th>Ημερομίσθιο</th>
+                <th>Email</th>
+                <th>Ενεργός</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for emp in employees %}
+            <tr>
+                <td>{{ emp.id }}</td>
+                <td><a href="{% url 'employee_detail' emp_id=emp.id %}">{{ emp.full_name }}</a></td>
+                <td>{{ emp.role }}</td>
+                <td>{{ emp.get_contract_type_display }}</td>
+                <td>{{ emp.get_salary_type_display }}</td>
+                <td>{% if emp.hourly_wage %}€{{ emp.hourly_wage }}{% else %}-{% endif %}</td>
+                <td>{% if emp.monthly_salary %}€{{ emp.monthly_salary }}{% else %}-{% endif %}</td>
+                <td>{% if emp.daily_wage_fixed %}€{{ emp.daily_wage_fixed }}{% else %}-{% endif %}</td>
+                <td>{{ emp.email }}</td>
+                <td>{% if emp.is_active %}✅{% else %}❌{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<a href="{% url 'export_employees' %}?{{ request.GET.urlencode }}" class="btn btn-success">📊 Export Excel</a>
+{% endblock %}

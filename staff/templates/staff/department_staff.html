@@ -1,0 +1,38 @@
+{% extends 'staff/base.html' %}
+
+{% block content %}
+<h1>👥 {{ department.hotel.name }} - {{ department.name }}</h1>
+
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Ονοματεπώνυμο</th>
+                <th>Ρόλος</th>
+                <th>Τύπος Σύμβασης</th>
+                <th>Τύπος Μισθοδοσίας</th>
+                <th>Ώρες/Μέρα</th>
+                <th>Κύριο Τμήμα</th>
+                <th>Email</th>
+                <th>Τηλέφωνο</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for emp_dept in emp_depts %}
+            <tr>
+                <td>{{ emp_dept.employee.full_name }}</td>
+                <td>{{ emp_dept.employee.role }}</td>
+                <td>{{ emp_dept.employee.get_contract_type_display }}</td>
+                <td>{{ emp_dept.employee.get_salary_type_display }}</td>
+                <td>{{ emp_dept.hours_per_day }}h</td>
+                <td>{% if emp_dept.is_primary %}✅{% else %}⚪{% endif %}</td>
+                <td>{{ emp_dept.employee.email }}</td>
+                <td>{{ emp_dept.employee.phone }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<a href="{% url 'shift_schedule' dept_id=department.id %}" class="btn btn-primary">← Πίσω στο Πρόγραμμα</a>
+{% endblock %}

@@ -1,0 +1,270 @@
+{% extends 'staff/base.html' %}
+{% load custom_tags %}
+
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap;">
+    <h1>📅 {{ department.hotel.name }} - {{ department.name }}</h1>
+    <div>
+        <a href="?date={{ prev_week }}" class="btn btn-primary">← Προηγούμενη</a>
+        <span style="margin:0 1rem; font-weight:bold;">{{ current_week|date:"d/m/Y" }}</span>
+        <a href="?date={{ next_week }}" class="btn btn-primary">Επόμενη →</a>
+    </div>
+</div>
+
+<!-- ➕ ΦΟΡΜΑ ΠΡΟΣΘΗΚΗΣ ΥΠΑΛΛΗΛΟΥ -->
+<div class="card" style="background: #e8f6f3; border-left: 4px solid #27ae60;">
+    <h3 onclick="toggleEmployeeForm()" style="cursor: pointer; user-select: none;">
+        ➕ Προσθήκη Νέου Υπαλλήλου στο Τμήμα 
+        <span id="toggle-icon" style="float: right; font-size: 20px;">▼</span>
+    </h3>
+    <div id="employee-form" style="display: none;">
+    <form method="post" action="{% url 'add_employee_to_dept' dept_id=department.id %}">
+        {% csrf_token %}
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:1rem;">
+            <div class="form-group">
+                <label>Όνομα *</label>
+                <input type="text" name="first_name" required placeholder="π.χ. Γιώργος">
+            </div>
+            <div class="form-group">
+                <label>Επίθετο *</label>
+                <input type="text" name="last_name" required placeholder="π.χ. Παπαδόπουλος">
+            </div>
+            <div class="form-group">
+                <label>Email *</label>
+                <input type="email" name="email" required placeholder="π.χ. george@hotel.com">
+            </div>
+            <div class="form-group">
+                <label>Τηλέφωνο</label>
+                <input type="text" name="phone" placeholder="π.χ. 6901234567">
+            </div>
+            <div class="form-group">
+                <label>Ρόλος *</label>
+                <input type="text" name="role" required placeholder="π.χ. Σερβιτόρος">
+            </div>
+            <div class="form-group">
+                <label>Τύπος Σύμβασης</label>
+                <select name="contract_type">
+                    <option value="full_time">Πλήρης Απασχόληση</option>
+                    <option value="part_time">Μερική Απασχόληση</option>
+                    <option value="seasonal">Εποχιακός</option>
+                    <option value="contractor">Εξωτερικός Συνεργάτης</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Τύπος Μισθοδοσίας</label>
+                <select name="salary_type" id="salary_type" onchange="toggleSalaryFields()">
+                    <option value="none">Χωρίς Υπολογισμό</option>
+                    <option value="hourly">Ωρομίσθιος</option>
+                    <option value="monthly">Μηνιαίος</option>
+                    <option value="daily">Ημερομίσθιος</option>
+                </select>
+            </div>
+            <div class="form-group" id="hourly_field" style="display:none;">
+                <label>Ωρομίσθιο (€)</label>
+                <input type="number" name="hourly_wage" step="0.01" placeholder="π.χ. 8.50">
+            </div>
+            <div class="form-group" id="monthly_field" style="display:none;">
+                <label>Μηνιαίος Μισθός (€)</label>
+                <input type="number" name="monthly_salary" step="0.01" placeholder="π.χ. 1200.00">
+            </div>
+            <div class="form-group" id="daily_field" style="display:none;">
+                <label>Ημερομίσθιο (€)</label>
+                <input type="number" name="daily_wage_fixed" step="0.01" placeholder="π.χ. 70.00">
+            </div>
+            <div class="form-group">
+                <label>Ώρες/Μέρα στο Τμήμα</label>
+                <input type="number" name="hours_per_day" step="0.5" value="8.00">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-success">➕ Προσθήκη Υπαλλήλου</button>
+    </form>
+    </div>
+</div>
+
+<!-- 📅 CHECKBOX ΗΜΕΡΟΛΟΓΙΟ ΜΕ TEMPLATES -->
+<div class="card">
+    <h3>📅 Πρόγραμμα Βαρδιών - Επιλογή με Checkbox</h3>
+    <form method="post" action="{% url 'add_bulk_shifts' dept_id=department.id %}">
+        {% csrf_token %}
+        
+        <!-- ΕΠΙΛΟΓΗ TEMPLATE -->
+        <div style="display:flex; gap:1rem; margin-bottom:1rem; flex-wrap:wrap; align-items:center;">
+            <div class="form-group" style="flex:1; min-width:200px;">
+                <label>Επίλεξε Τύπο Βάρδιας:</label>
+                <select name="selected_template" id="selected_template" onchange="showTemplateInfo()">
+                    <option value="">-- Επίλεξε από Admin Templates --</option>
+                    {% for template in shift_templates %}
+                    <option value="{{ template.id }}" data-start="{{ template.start_time|time:'H:i' }}" data-end="{{ template.end_time|time:'H:i' }}">
+                        {{ template.name }} ({{ template.start_time|time:"H:i" }}-{{ template.end_time|time:"H:i" }})
+                    </option>
+                    {% endfor %}
+                    <option value="custom">Custom (Ορισμός ώρας)</option>
+                </select>
+            </div>
+            <div id="custom_time_fields" style="display:none;">
+                <input type="time" name="custom_start" value="07:00"> - <input type="time" name="custom_end" value="15:00">
+            </div>
+            <div id="template_info" style="background:#e3f2fd; padding:8px 12px; border-radius:4px; font-size:12px;">
+                Επίλεξε template για να δεις ώρες
+            </div>
+        </div>
+
+        <div class="week-grid-checkbox">
+            {% for day in week_dates %}
+            <div class="day-column-checkbox">
+                <div class="day-header" style="{% if day == today %}background:#e74c3c;{% endif %}">
+                    {{ day|date:"D" }}<<br>{{ day|date:"d/m" }}
+                </div>
+                
+                <!-- ΥΠΑΛΛΗΛΟΙ ΜΕ CHECKBOX -->
+                <div class="shift-section" style="border-left: 3px solid #3498db; padding-left: 8px;">
+                    <label style="font-weight:bold; color:#3498db; font-size:12px; margin-bottom:8px; display:block;">
+                        <input type="checkbox" class="select-all-day" data-day="{{ day|date:'Y-m-d' }}"> 
+                        Επιλογή Όλων
+                    </label>
+                    {% for emp_dept in available_employees %}
+                    <div class="employee-checkbox">
+                        <label style="font-size:12px; cursor:pointer;">
+                            <input type="checkbox" name="shifts" value="{{ day|date:'Y-m-d' }}|{{ emp_dept.employee.id }}">
+                            {{ emp_dept.employee.first_name }} {{ emp_dept.employee.last_name }}
+                        </label>
+                    </div>
+                    {% empty %}
+                    <div style="font-size:11px; color:#95a5a6; padding:4px;">Κανένας υπάλληλος</div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div style="margin-top: 1rem; text-align: center;">
+            <button type="submit" class="btn btn-success" style="font-size:16px; padding:12px 24px;">
+                💾 Αποθήκευση Βαρδιών Εβδομάδας
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- 📅 ΥΠΑΡΧΟΥΣΕΣ ΒΑΡΔΙΕΣ -->
+<div class="card">
+    <h3>📅 Υπάρχουσες Βάρδιες</h3>
+    <div class="week-grid">
+        {% for day in week_dates %}
+        <div class="day-column">
+            <div class="day-header" style="{% if day == today %}background:#e74c3c;{% endif %}">{{ day|date:"D" }}<<br>{{ day|date:"d/m" }}</div>
+            {% for shift in shifts_by_day|get_item:day %}
+            <div class="shift-card {{ shift.shift_type }}">
+                <strong>{{ shift.employee.first_name }}</strong><br>
+                <small>{{ shift.start_time|time:"H:i" }} - {{ shift.end_time|time:"H:i" }}</small><br>
+                <span class="badge badge-{{ shift.status }}">{{ shift.get_status_display }}</span><br>
+                {% if shift.daily_wage > 0 %}
+                <small>€{{ shift.daily_wage }}</small><br>
+                {% else %}
+                <small style="color:#95a5a6;">Χωρίς υπολογισμό</small><br>
+                {% endif %}
+                <a href="{% url 'edit_shift' shift_id=shift.id %}" class="btn btn-sm btn-warning">✏️</a>
+            </div>
+            {% empty %}
+            <div style="text-align:center; color:#95a5a6; font-size:12px; padding:2rem 0;">-</div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.week-grid-checkbox {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+}
+.day-column-checkbox {
+    background: #f8f9fa;
+    border-radius: 4px;
+    padding: 0.5rem;
+    min-height: 300px;
+}
+.employee-checkbox {
+    margin: 2px 0;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+.employee-checkbox:hover {
+    background: #e3f2fd;
+}
+.employee-checkbox input[type="checkbox"] {
+    margin-right: 4px;
+}
+.shift-section {
+    margin-bottom: 8px;
+    background: white;
+    border-radius: 4px;
+    padding: 4px;
+}
+.select-all-day {
+    margin-right: 4px;
+}
+@media (max-width: 768px) {
+    .week-grid-checkbox {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<div style="margin-top: 20px;">
+    <a href="{% url 'dashboard' %}" class="btn btn-primary">← Πίσω στο Dashboard</a>
+</div>
+
+<script>
+function toggleSalaryFields() {
+    const type = document.getElementById('salary_type').value;
+    document.getElementById('hourly_field').style.display = type === 'hourly' ? 'block' : 'none';
+    document.getElementById('monthly_field').style.display = type === 'monthly' ? 'block' : 'none';
+    document.getElementById('daily_field').style.display = type === 'daily' ? 'block' : 'none';
+}
+
+function showTemplateInfo() {
+    const select = document.getElementById('selected_template');
+    const option = select.options[select.selectedIndex];
+    const info = document.getElementById('template_info');
+    const customFields = document.getElementById('custom_time_fields');
+    
+    if (select.value === 'custom') {
+        info.innerHTML = 'Ορισμός custom ωρών';
+        customFields.style.display = 'block';
+    } else if (select.value) {
+        const start = option.dataset.start;
+        const end = option.dataset.end;
+        info.innerHTML = `Ώρες: <strong>${start} - ${end}</strong>`;
+        customFields.style.display = 'none';
+    } else {
+        info.innerHTML = 'Επίλεξε template για να δεις ώρες';
+        customFields.style.display = 'none';
+    }
+}
+
+// Select all checkboxes for a day
+document.querySelectorAll('.select-all-day').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        const day = this.dataset.day;
+        const checkboxes = document.querySelectorAll(`input[name="shifts"][value^="${day}|"]`);
+        checkboxes.forEach(cb => cb.checked = this.checked);
+    });
+});
+</script>
+
+<script>
+function toggleEmployeeForm() {
+    var form = document.getElementById('employee-form');
+    var icon = document.getElementById('toggle-icon');
+    if (form.style.display === 'none') {
+        form.style.display = 'block';
+        icon.textContent = '▲';
+    } else {
+        form.style.display = 'none';
+        icon.textContent = '▼';
+    }
+}
+</script>
+
+{% endblock %}

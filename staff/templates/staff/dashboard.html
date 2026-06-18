@@ -1,0 +1,114 @@
+{% extends 'staff/base.html' %}
+
+{% block content %}
+<h1>Dashboard</h1>
+
+{% if is_hr %}
+<div class="card">
+    <h2>📊 HR Overview - Όλα τα Ξενοδοχεία</h2>
+    <div class="grid-4">
+        <div class="stat-card">
+            <div class="stat-number">{{ total_employees }}</div>
+            <div class="stat-label">Ενεργοί Υπάλληλοι</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ total_shifts_today }}</div>
+            <div class="stat-label">Βάρδιες Σήμερα</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">€{{ monthly_wages }}</div>
+            <div class="stat-label">Ημερομίσθια Μήνα</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ hotels|length }}</div>
+            <div class="stat-label">Ξενοδοχεία</div>
+        </div>
+    </div>
+    <div style="margin-top: 1.5rem;">
+        <a href="{% url 'hr_employees' %}" class="btn btn-primary">👥 Προσωπικό</a>
+        <a href="{% url 'hr_wages' %}" class="btn btn-success">💰 Ημερομίσθια</a>
+        <a href="{% url 'daily_hr_report' %}" class="btn btn-info">📊 Daily Report</a>
+        <a href="{% url 'export_employees' %}" class="btn btn-warning">📊 Export Excel</a>
+        <a href="{% url 'add_employee_multi_dept' %}" class="btn btn-success">➕ Προσθήκη σε Πολλά Τμήματα</a>
+    </div>
+</div>
+{% endif %}
+
+{% if is_hr or is_manager %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; margin-bottom: 1rem;">
+    <h2 style="margin: 0;">📅 Πρόγραμμα Βαρδιών</h2>
+    {% if is_manager %}
+    <a href="{% url 'add_employee_multi_dept' %}" class="btn btn-success" style="font-size: 14px; padding: 8px 16px;">
+        ➕ Προσθήκη Υπαλλήλου σε Τμήματα
+    </a>
+    {% endif %}
+</div>
+{% for dept_data in dept_shifts %}
+<div class="card">
+    <h3>{{ dept_data.department.hotel.name }} - {{ dept_data.department.name }}</h3>
+    <p>Εβδομάδα: {{ week_range }} | Υπάλληλοι: {{ dept_data.employee_count }}</p>
+    <div style="margin-bottom: 1rem;">
+        <a href="{% url 'shift_schedule' dept_id=dept_data.department.id %}" class="btn btn-primary">📅 Πρόγραμμα</a>
+        <a href="{% url 'department_staff' dept_id=dept_data.department.id %}" class="btn btn-warning">👥 Προσωπικό</a>
+        <a href="{% url 'send_daily_summary' dept_id=dept_data.department.id %}" class="btn btn-success">📧 Daily Summary</a>
+        <a href="{% url 'attendance_confirmation' dept_id=dept_data.department.id %}" class="btn btn-danger">📋 Παρουσίες</a>
+    </div>
+    <div class="week-grid">
+        {% for day, shifts in dept_data.shifts_by_day.items %}
+        <div class="day-column">
+            <div class="day-header" style="{% if day == today %}background:#e74c3c;{% endif %}">{{ day|date:"D d/m" }}</div>
+            {% for shift in shifts %}
+            <div class="shift-card {{ shift.shift_type }}">
+                <strong>{{ shift.employee.first_name }}</strong><br>
+                <small>{{ shift.start_time|time:"H:i" }} - {{ shift.end_time|time:"H:i" }}</small><br>
+                <span class="badge badge-{{ shift.status }}">{{ shift.get_status_display }}</span><br>
+                {% if shift.daily_wage > 0 %}
+                <small>€{{ shift.daily_wage }}</small>
+                {% else %}
+                <small style="color:#95a5a6;">Χωρίς υπολογισμό</small>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div style="text-align:center; color:#95a5a6; font-size:12px; padding:1rem;">-</div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% empty %}
+<p>Δεν διαχειρίζεστε κάποιο τμήμα ακόμα.</p>
+{% endfor %}
+{% endif %}
+
+{% if not is_manager and not is_hr %}
+<div class="card">
+    <h2>👤 Τα Στατιστικά Μου</h2>
+    {% if employee %}
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">
+        <div style="background: #3498db; color: white; padding: 15px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 12px; margin-bottom: 5px;">📅 Σήμερα</div>
+            <div style="font-size: 20px; font-weight: bold;">{{ today_shifts|length }} βάρδιες</div>
+            <div style="font-size: 14px;">{{ today_hours }} ώρες</div>
+        </div>
+        <div style="background: #2ecc71; color: white; padding: 15px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 12px; margin-bottom: 5px;">📅 Εβδομάδα</div>
+            <div style="font-size: 20px; font-weight: bold;">{{ week_shifts_count }} βάρδιες</div>
+            <div style="font-size: 14px;">{{ week_hours }} ώρες</div>
+        </div>
+        <div style="background: #f39c12; color: white; padding: 15px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 12px; margin-bottom: 5px;">📅 Μήνας</div>
+            <div style="font-size: 20px; font-weight: bold;">{{ month_shifts_count }} βάρδιες</div>
+            <div style="font-size: 14px;">{{ month_hours }} ώρες</div>
+        </div>
+        <div style="background: #9b59b6; color: white; padding: 15px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 12px; margin-bottom: 5px;">📅 Έτος</div>
+            <div style="font-size: 20px; font-weight: bold;">{{ year_shifts_count }} βάρδιες</div>
+            <div style="font-size: 14px;">{{ year_hours }} ώρες</div>
+        </div>
+    </div>
+    {% else %}
+    <p>Επικοινωνήστε με τον προϊστάμενό σας για θέματα βαρδιών.</p>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

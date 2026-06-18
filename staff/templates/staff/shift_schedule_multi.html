@@ -1,0 +1,19 @@
+{% extends 'staff/base.html' %}
+
+{% block content %}
+<h1>📅 Ορισμός Βαρδιών - Πολλαπλά Τμήματα</h1>
+
+<div class="card">
+    <h3>Επίλεξε Τμήματα</h3>
+    <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+        {% for dept in all_departments %}
+        <label style="background:#f0f0f0; padding:8px 12px; border-radius:4px; cursor:pointer;">
+            <input type="checkbox" name="departments" value="{{ dept.id }}" {% if dept == department %}checked{% endif %}>
+            {{ dept.hotel.name }} - {{ dept.name }}
+        </label>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Υπόλοιπο template ίδιο με πριν, αλλά εφαρμόζεται σε όλα τα επιλεγμένα τμήματα -->
+{% endblock %}

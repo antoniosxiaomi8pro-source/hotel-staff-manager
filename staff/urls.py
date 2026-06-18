@@ -1,0 +1,30 @@
+from django.urls import path, include
+from . import views
+
+urlpatterns = [
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('', views.dashboard, name='dashboard'),
+    path('dashboard/', views.dashboard, name='dashboard'),
+    path('department/<int:dept_id>/staff/', views.department_staff, name='department_staff'),
+    path('department/<int:dept_id>/schedule/', views.shift_schedule, name='shift_schedule'),
+    path('department/<int:dept_id>/shift/add/', views.add_shift, name='add_shift'),
+    path('department/<int:dept_id>/bulk-shifts/', views.add_bulk_shifts, name='add_bulk_shifts'),
+    path('department/<int:dept_id>/add-employee/', views.add_employee_to_dept, name='add_employee_to_dept'),
+    path('shift/<int:shift_id>/edit/', views.edit_shift, name='edit_shift'),
+    path('hr/employees/', views.hr_employees, name='hr_employees'),
+    path('hr/wages/', views.hr_wages, name='hr_wages'),
+    path('employee/<int:emp_id>/', views.employee_detail, name='employee_detail'),
+    path('export/payroll/', views.export_payroll, name='export_payroll'),
+    path('export/employees/', views.export_employees, name='export_employees'),
+    path('department/<int:dept_id>/send-summary/', views.send_daily_summary_now, name='send_daily_summary'),
+    path('department/<int:dept_id>/attendance/', views.attendance_confirmation, name='attendance_confirmation'),
+    path('import-employees/', views.import_employees_view, name='import_employees'),
+    path('employee/add-multi-dept/', views.add_employee_to_multiple_depts, name='add_employee_multi_dept'),
+    path('hr/daily-report/', views.daily_hr_report, name='daily_hr_report'),
+    path('my-schedule/', views.my_schedule, name='my_schedule'),
+    path('stats/entry/', views.daily_stats_entry, name='daily_stats_entry'),
+    path('stats/edit/<int:stats_id>/', views.edit_daily_stats, name='edit_daily_stats'),
+    path('executive/', views.executive_dashboard, name='executive_dashboard'),
+    path('api/', include('staff.api_urls')),
+]

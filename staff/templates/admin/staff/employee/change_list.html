@@ -1,0 +1,10 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools-items %}
+    {{ block.super }}
+    <li>
+        <a href="/import-employees/" class="btn btn-high btn-success" style="background: #27ae60; color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none; display: inline-block; margin-left: 10px;">
+            📥 Import από Excel
+        </a>
+    </li>
+{% endblock %}

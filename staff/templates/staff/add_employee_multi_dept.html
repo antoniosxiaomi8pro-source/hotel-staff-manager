@@ -1,0 +1,58 @@
+{% extends 'staff/base.html' %}
+
+{% block content %}
+<h1>➕ Προσθήκη Υπαλλήλου σε Πολλά Τμήματα</h1>
+
+<div style="width: 100%; max-width: 1200px;">
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: bold;">👤 Επίλεξε Υπάλληλο:</label>
+            <select name="employee" required style="width: 100%; max-width: 600px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                <option value="">-- Επίλεξε --</option>
+                {% for emp in employees %}
+                <option value="{{ emp.id }}">{{ emp.full_name }} ({{ emp.role }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: bold;">🏢 Επίλεξε Τμήματα (πολλαπλή επιλογή):</label>
+            <div style="border: 1px solid #ccc; border-radius: 4px; background: #f8f9fa; max-width: 800px;">
+                <div style="background: #79aec8; color: white; padding: 10px; font-weight: bold; border-radius: 4px 4px 0 0;">
+                    Διαθέσιμα Τμήματα - Επίλεξε με click
+                </div>
+                <div style="padding: 10px; max-height: 350px; overflow-y: auto; overflow-x: hidden;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        {% for dept in departments %}
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 8px; width: 40px; vertical-align: top;">
+                                <input type="checkbox" name="departments" value="{{ dept.id }}" style="width: 18px; height: 18px;">
+                            </td>
+                            <td style="padding: 8px; vertical-align: top;">
+                                <div style="font-weight: bold; color: #2c3e50;">{{ dept.hotel.name }}</div>
+                                <div style="color: #7f8c8d; font-size: 13px;">{{ dept.name }}</div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: bold;">⏱️ Ώρες/Μέρα:</label>
+            <input type="number" name="hours_per_day" value="8.00" step="0.5" style="width: 100px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+        </div>
+        
+        <button type="submit" class="btn btn-success" style="font-size: 16px; padding: 12px 24px;">
+            ➕ Προσθήκη σε Επιλεγμένα Τμήματα
+        </button>
+    </form>
+</div>
+
+<div style="margin-top: 20px;">
+    <a href="{% url 'dashboard' %}" class="btn btn-primary">← Πίσω στο Dashboard</a>
+</div>
+{% endblock %}

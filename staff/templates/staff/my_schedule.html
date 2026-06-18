@@ -1,0 +1,60 @@
+{% extends 'staff/base.html' %}
+
+{% block content %}
+<h1>📅 Το Πρόγραμμά Μου</h1>
+<h3>Εβδομάδα: {{ monday|date:"d/m/Y" }} - {{ sunday|date:"d/m/Y" }}</h3>
+
+<!-- Στατιστικά -->
+<div class="card" style="margin-bottom: 20px;">
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+        <div style="background: #3498db; color: white; padding: 15px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 24px; font-weight: bold;">{{ total_shifts }}</div>
+            <div style="font-size: 12px;">Συνολικές Βάρδιες</div>
+        </div>
+        <div style="background: #2ecc71; color: white; padding: 15px; border-radius: 8px; text-align: center;">
+            <div style="font-size: 24px; font-weight: bold;">{{ total_hours }}</div>
+            <div style="font-size: 12px;">Συνολικές Ώρες</div>
+        </div>
+    </div>
+</div>
+
+<!-- Εβδομαδιαίο Πρόγραμμα -->
+<div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-top: 20px;">
+    {% for day, day_shifts in shifts_by_day.items %}
+    <div style="border: 1px solid #ddd; border-radius: 8px; background: white; min-height: 200px;">
+        <div style="background: {% if day == today %}#e74c3c{% else %}#34495e{% endif %}; color: white; padding: 10px; text-align: center; border-radius: 8px 8px 0 0; font-weight: bold;">
+            {{ day|date:"D" }}<<br>
+            <small>{{ day|date:"d/m" }}</small>
+        </div>
+        <div style="padding: 10px;">
+            {% for shift in day_shifts %}
+            <div style="margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-radius: 4px; border-left: 4px solid {% if shift.status == 'completed' %}#2ecc71{% elif shift.status == 'absent' %}#e74c3c{% else %}#f39c12{% endif %}">
+                <div style="font-weight: bold; font-size: 13px;">{{ shift.department.hotel.name }}</div>
+                <div style="font-size: 12px; color: #7f8c8d;">{{ shift.department.name }}</div>
+                <div style="font-size: 14px; margin-top: 4px;">
+                    {{ shift.start_time|time:"H:i" }} - {{ shift.end_time|time:"H:i" }}
+                </div>
+                <div style="margin-top: 4px;">
+                    {% if shift.status == 'completed' %}
+                    <span style="background: #2ecc71; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px;">✅ Ολοκληρωμένη</span>
+                    {% elif shift.status == 'absent' %}
+                    <span style="background: #e74c3c; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px;">❌ Απουσία</span>
+                    {% else %}
+                    <span style="background: #f39c12; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px;">⏳ Προγραμματισμένη</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div style="text-align: center; color: #bdc3c7; padding: 20px 0; font-size: 12px;">
+                Ρεπό
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div style="margin-top: 20px;">
+    <a href="{% url 'dashboard' %}" class="btn btn-primary">← Πίσω στο Dashboard</a>
+</div>
+{% endblock %}
