@@ -5,4 +5,5 @@ pip install -r requirements.txt
 
 python manage.py collectstatic --no-input
 python manage.py migrate
-python manage.py setup_groupspython manage.py create_default_superuser
+python manage.py setup_groups
+python manage.py create_default_superuser
